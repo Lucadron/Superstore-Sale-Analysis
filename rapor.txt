@@ -1,0 +1,96 @@
+1- Veri Seti Seçimi
+
+https://www.kaggle.com/datasets/vivek468/superstore-dataset-final
+
+2- Veri Setinin Anlaşılması. Sütunlar, veri türleri ve örnek değerler incelendi
+
+Jupyter notebook idesinde python kullanılarak veri dönüşümleri gerçekleştirildi.
+
+VeriInceleme.ipynb dosyasında; veriyi anlama, tip dönüşümleri, kategorik dönüşümler, tarih dönüşümleri ve yeni sütun oluşumu gerçekleştirildi.
+
+
+ KOLON ADı       AÇIKLAMA                                VERI TIPI  
+
+ Order ID        Sipariş numarası                        Metin      
+ Order Date      Sipariş tarihi                          Tarih      
+ Ship Date       Kargoya veriliş tarihi                  Tarih      
+ Ship Mode       Kargo tipi                              Kategorik  
+ Customer ID     Müşteri ID’si                           Metin      
+ Customer Name   Müşteri adı                             Metin      
+ Segment         Müşteri tipi						     Kategorik  
+ Country         Ülke                                    Metin      
+ City            Şehir                                   Metin      
+ State           Eyalet/İl                               Metin      
+ Postal Code     Posta kodu                              Metin/Sayı 
+ Region          Bölge                                   Kategorik  
+ Product ID      Ürün ID                                 Metin      
+ Category        Ana kategori                            Kategorik  
+ Sub Category    Alt kategori                            Kategorik  
+ Product Name    Ürün adı                                Metin      
+ Sales           Satış tutarı (USD)                      Sayısal    
+ Quantity        Satılan ürün adedi                      Sayısal    
+ Discount        Uygulanan indirim oranı                 Sayısal    
+ Profit          Net kâr                                 Sayısal    
+
+3- Veri Dönüştürme
+
+VeriDuzenleme.ipynb dosyasında; dosya okuma, tip dönüşümleri, eksik ve bozuk verileri düzeltme, sütun adlarındaki boşlukları "_" le değiştirme ve temiz csv dosyasını kaydetme işlemleri gerçekleştirildi.
+
+4- Modelleme
+
+Bu aşamada Power BI'da kullanılmak üzere ölçüm (fact) ve boyut (dimension) tabloları oluşturulmuştur. Süreçte yaşanan teknik problemler çözülerek doğru bir veri modeli inşa edilmiştir.
+
+superstore_csv_olusturucu.ipynb dosyası ile .csv formatında tabloları oluşturuldu.
+
+ Tablo Adı                   Türü       Açıklama 
+ 
+ `sales_fact_with_shipmode`  Fact       Satış işlemleri ve metrikler 
+ `customer_dim_cleaned`      Dimension  Müşteri bilgileri            
+ `product_dim_cleaned`       Dimension  Ürün bilgileri               
+ `ship_dim_cleaned`          Dimension  Gönderim türleri             
+ `time_dim`                  Dimension  Sipariş tarihi, ay, yıl      
+
+İlk olarak superstore_clean_ready.csv üzerinden doğrudan Power BI’a veri yüklenip modelleme yapılmaya çalışıldı. Ancak şu problemler ortaya çıktı:
+
+sales_fact.csv içinde Ship Mode sütunu eksikti, bu nedenle ship_dim tablosuyla ilişki kurulamadı.
+
+customer_dim ve product_dim tabloları doğru oluşturulmasına rağmen Power BI'da "duplicate key" (tekrar eden değer) hatası alındı. Bu da bire-çok ilişki kurulmasını engelledi.
+
+time_dim ile yapılan ilk ilişki Order_Month üzerinden kuruldu, bu alan tekil olmadığı için hata verdi. Bu ilişki Order Date üzerinden yeniden düzenlendi.
+
+Çözüm Süreci ve Kodlama
+Yukarıdaki sorunları çözmek için superstore_csv_olusturucu.ipynb adlı Jupyter Notebook dosyası kullanılarak şu işlemler uygulandı:
+
+Tekilleştirme işlemi yapıldı: customer_id, product_id, ship_mode gibi alanların tekrar eden satırları silindi.
+
+Eksik sütunlar yeniden eklendi: Özellikle Ship Mode alanı, sales_fact tablosuna geri eklendi.
+
+Her tablo to_csv() komutu ile ayrı bir .csv dosyası haline getirildi:
+sales_fact_with_shipmode.csv
+customer_dim_cleaned.csv
+product_dim_cleaned.csv
+ship_dim_cleaned.csv
+time_dim.csv
+
+Power BI İlişki Yapısı
+
+ Kaynak Tablo            Hedef Tablo                | Ortak Kolon 
+
+ `customer_dim_cleaned`  `sales_fact_with_shipmode`  Customer ID 
+ `product_dim_cleaned`   `sales_fact_with_shipmode`  Product ID  
+ `ship_dim_cleaned`      `sales_fact_with_shipmode`  Ship Mode   
+ `time_dim`              `sales_fact_with_shipmode`  Order Date  
+
+Tüm ilişkiler çift yönlü filtreleme (Both) olarak ayarlandı.
+
+5- Görselleştirme
+
+Power BI üzerinde; KPI kartları: Toplam Satış, Kâr, Ürün Adedi, Kâr Marjı; Yıllara göre satış ve kâr çizgi grafiği; Kategoriye göre satış sütun grafiği; Harita: eyalet bazlı toplam satış; Filtreler: Segment ve Ship Mode için slicer'lar oluşturuldu.
+
+6- Sonuç
+
+- Teknoloji kategorisi en yüksek satış tutarına sahiptir.
+- Bireysel müşterilerde kâr marjı daha yüksektir.
+- En çok satış Doğu ve Batı bölgelerindedir.
+
+Tüm bu işlemler sonucunda Power BI’da doğru çalışan, ilişkili ve optimize edilmiş bir model kurulmuş; KPI kartları, filtreleyici slicer’lar ve görseller ile etkili bir analiz ortamı oluşturulmuştur.
